@@ -45,12 +45,7 @@ ssc = StreamingContext(spark_context,5)
 
 message =KafkaUtils.createDirectStream(ssc,["registereduser"], {"metadata.broker.list":"localhost:9092"})
 
-lines = message.map(lambda x: predict(dict(x[1])))
 
-lines.pprint()
-
-ssc.start()
-ssc.awaitTermination()
 
 
 
@@ -144,7 +139,13 @@ def predict(pd_test):
 
 
 d={'Id': 1461, 'MSSubClass': 20, 'MSZoning': 'RH', 'LotFrontage': 80.0, 'LotArea': 11622, 'Street': 'Pave', 'Alley': 'NoData', 'LotShape': 'Reg', 'LandContour': 'Lvl', 'Utilities': 'AllPub', 'LotConfig': 'Inside', 'LandSlope': 'Gtl', 'Neighborhood': 'NAmes', 'Condition1': 'Feedr', 'Condition2': 'Norm', 'BldgType': '1Fam', 'HouseStyle': '1Story', 'OverallQual': 5, 'OverallCond': 6, 'YearBuilt': 1961, 'YearRemodAdd': 1961, 'RoofStyle': 'Gable', 'RoofMatl': 'CompShg', 'Exterior1st': 'VinylSd', 'Exterior2nd': 'VinylSd', 'MasVnrType': 'None', 'MasVnrArea': 0.0, 'ExterQual': 'TA', 'ExterCond': 'TA', 'Foundation': 'CBlock', 'BsmtQual': 'TA', 'BsmtCond': 'TA', 'BsmtExposure': 'No', 'BsmtFinType1': 'Rec', 'BsmtFinSF1': 468.0, 'BsmtFinType2': 'LwQ', 'BsmtFinSF2': 144.0, 'BsmtUnfSF': 270.0, 'TotalBsmtSF': 882.0, 'Heating': 'GasA', 'HeatingQC': 'TA', 'CentralAir': 'Y', 'Electrical': 'SBrkr', '1stFlrSF': 896, '2ndFlrSF': 0, 'LowQualFinSF': 0, 'GrLivArea': 896, 'BsmtFullBath': 0.0, 'BsmtHalfBath': 0.0, 'FullBath': 1, 'HalfBath': 0, 'BedroomAbvGr': 2, 'KitchenAbvGr': 1, 'KitchenQual': 'TA', 'TotRmsAbvGrd': 5, 'Functional': 'Typ', 'Fireplaces': 0, 'FireplaceQu': 'NoData', 'GarageType': 'Attchd', 'GarageYrBlt': 1961.0, 'GarageFinish': 'Unf', 'GarageCars': 1.0, 'GarageArea': 730.0, 'GarageQual': 'TA', 'GarageCond': 'TA', 'PavedDrive': 'Y', 'WoodDeckSF': 140, 'OpenPorchSF': 0, 'EnclosedPorch': 0, '3SsnPorch': 0, 'ScreenPorch': 120, 'PoolArea': 0, 'PoolQC': 'NoData', 'Fence': 'MnPrv', 'MiscFeature': 'NoData', 'MiscVal': 0, 'MoSold': 6, 'YrSold': 2010, 'SaleType': 'WD', 'SaleCondition': 'Normal'}
-predict(pd.DataFrame([d]))
+#predict(pd.DataFrame([d]))
 
+lines = message.map(lambda x: predict(dict(x[1])))
+
+lines.pprint()
+
+ssc.start()
+ssc.awaitTermination()
 
 
