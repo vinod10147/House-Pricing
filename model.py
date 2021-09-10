@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[16]:
+# In[2]:
 
 
 from pyspark import SparkConf, SparkContext
@@ -19,49 +19,49 @@ from pyspark.ml.feature import VectorAssembler, StandardScaler
 from pyspark.ml.evaluation import RegressionEvaluator
 
 
-# In[2]:
+# In[3]:
 
 
 import numpy as np # linear algebra
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 
 
-# In[3]:
+# In[4]:
 
 
-import matplotlib.pyplot as plt
-import seaborn as sns
+# import matplotlib.pyplot as plt
+# import seaborn as sns
 
 from scipy import stats
 from scipy.stats import norm, skew 
 
 
-# In[4]:
+# In[5]:
 
 
 spark_session = SparkSession.builder.master("local[2]").appName("HousingRegression").getOrCreate()
 
 
-# In[5]:
+# In[6]:
 
 
 spark_context = spark_session.sparkContext
 
 
-# In[6]:
+# In[7]:
 
 
 spark_sql_context = SQLContext(spark_context)
 
 
-# In[7]:
+# In[8]:
 
 
 TRAIN_INPUT = './input/train.csv'
 TEST_INPUT = './input/test.csv'
 
 
-# In[8]:
+# In[9]:
 
 
 pd_train = pd.read_csv(TRAIN_INPUT)
@@ -69,27 +69,27 @@ pd_test = pd.read_csv(TEST_INPUT)
 na_cols = pd_train.columns[pd_train.isna().any()].tolist()
 
 
-# In[16]:
-
-
-fig = plt.figure()
-ax = fig.add_subplot()
-res = stats.probplot(pd_train['SalePrice'], plot=plt)
-
-
 # In[10]:
 
 
-corr = pd_train.corr()
+# fig = plt.figure()
+# ax = fig.add_subplot()
+# res = stats.probplot(pd_train['SalePrice'], plot=plt)
 
 
 # In[11]:
 
 
+corr = pd_train.corr()
+
+
+# In[12]:
+
+
 corr[['SalePrice']].sort_values(by='SalePrice',ascending=False).style.background_gradient(cmap='viridis', axis=None)
 
 
-# In[19]:
+# In[13]:
 
 
 total = pd_train.isnull().sum().sort_values(ascending=False)
@@ -99,7 +99,7 @@ missing = pd.concat([total, percent], axis=1, keys=['Total', 'Perc_missing'])
 missing.head(15)
 
 
-# In[20]:
+# In[14]:
 
 
 # We will remove features with missing proportion of more than 15% (thumb rule)
@@ -108,26 +108,26 @@ pd_train = pd_train.drop((missing[missing['Perc_missing'] >= 0.15]).index,1)
 pd_train.head()
 
 
-# In[21]:
+# In[15]:
 
 
 train_cols = list(pd_train.columns)
 train_cols.remove('SalePrice')
 
 
-# In[22]:
+# In[16]:
 
 
 pd_test = pd_test[train_cols]
 
 
-# In[23]:
+# In[17]:
 
 
 pd_test.columns[pd_test.isna().any()].tolist()
 
 
-# In[24]:
+# In[18]:
 
 
 # Althoug this is not the best solution to fill the NA-values with "None"/0, for most of the features 
@@ -159,7 +159,7 @@ print(pd_train.isnull().sum().max()) # check if any missing values are left
 print(pd_test.isnull().sum().max())
 
 
-# In[25]:
+# In[19]:
 
 
 pd_test['BsmtFinSF1'] = pd_test['BsmtFinSF1'].fillna(pd_test['BsmtFinSF1'].mean())
@@ -170,7 +170,7 @@ pd_test['BsmtFullBath'] = pd_test['BsmtFullBath'].fillna(pd_test['BsmtFullBath']
 pd_test['BsmtHalfBath'] = pd_test['BsmtHalfBath'].fillna(pd_test['BsmtHalfBath'].mean())
 
 
-# In[26]:
+# In[20]:
 
 
 cat_columns = pd_train.select_dtypes(include=['object']).columns
@@ -178,14 +178,14 @@ pd_train[cat_columns] = pd_train[cat_columns].fillna('NoData')
 pd_test[cat_columns] = pd_test[cat_columns].fillna('NoData')
 
 
-# In[29]:
+# In[21]:
 
 
 train_df = spark_session.createDataFrame(pd_train)
 test_df = spark_session.createDataFrame(pd_test)
 
 
-# In[30]:
+# In[22]:
 
 
 train_df = train_df.select([c for c in train_df.columns if c not in na_cols])
@@ -194,7 +194,7 @@ train_cols.remove('SalePrice')
 test_df = test_df.select(train_cols)
 
 
-# In[31]:
+# In[23]:
 
 
 from pyspark.sql.types import IntegerType
@@ -213,7 +213,7 @@ test_df = test_df.withColumn("GarageArea", test_df["GarageArea"].cast(IntegerTyp
 # train_df.printSchema()
 
 
-# In[32]:
+# In[24]:
 
 
 # Defining string columns to pass on to the String Indexer (= categorical feature encoding)
@@ -225,7 +225,7 @@ for col, dtype in train_df.dtypes:
         train_string_columns.append(col)
 
 
-# In[33]:
+# In[25]:
 
 
 from pyspark.ml import Pipeline
@@ -238,13 +238,13 @@ pipeline = Pipeline(stages=indexers)
 train_indexed = pipeline.fit(train_df).transform(train_df)
 
 
-# In[36]:
+# In[26]:
 
 
 print(len(train_indexed.columns))
 
 
-# In[37]:
+# In[27]:
 
 
 test_string_columns = []
@@ -254,7 +254,7 @@ for col, dtype in test_df.dtypes:
         test_string_columns.append(col)
 
 
-# In[38]:
+# In[28]:
 
 
 indexers2 = [StringIndexer(inputCol=column, outputCol=column+'_index', handleInvalid='keep').fit(test_df) for column in test_string_columns]
@@ -263,13 +263,13 @@ pipeline2 = Pipeline(stages=indexers2)
 test_indexed = pipeline2.fit(test_df).transform(test_df)
 
 
-# In[39]:
+# In[29]:
 
 
 print(len(test_indexed.columns))
 
 
-# In[40]:
+# In[30]:
 
 
 def get_dtype(df,colname):
@@ -289,14 +289,14 @@ train_indexed = train_indexed.select(num_cols_train)
 test_indexed = test_indexed.select(num_cols_test)
 
 
-# In[41]:
+# In[31]:
 
 
 print(len(train_indexed.columns))
 print(len(test_indexed.columns))
 
 
-# In[43]:
+# In[32]:
 
 
 from pyspark.ml.feature import VectorAssembler
@@ -305,7 +305,7 @@ vectorAssembler = VectorAssembler(inputCols = train_indexed.drop("SalePrice").co
 train_vector = vectorAssembler.transform(train_indexed)
 
 
-# In[44]:
+# In[33]:
 
 
 vectorAssembler2 = VectorAssembler(inputCols = test_indexed.columns, outputCol = 'features').setHandleInvalid("keep")
@@ -313,7 +313,7 @@ vectorAssembler2 = VectorAssembler(inputCols = test_indexed.columns, outputCol =
 test_vector = vectorAssembler2.transform(test_indexed)
 
 
-# In[45]:
+# In[34]:
 
 
 from pyspark.sql.functions import lit
@@ -321,7 +321,7 @@ from pyspark.sql.functions import lit
 test_vector = test_vector.withColumn("SalePrice", lit(0))
 
 
-# In[46]:
+# In[35]:
 
 
 # Train-test split
@@ -331,10 +331,11 @@ train = splits[0]
 val = splits[1]
 
 
-# In[47]:
+# In[48]:
 
 
 # A more complex model with RF
+import _pickle as cPickle
 
 from pyspark.ml.regression import RandomForestRegressor
 
@@ -345,6 +346,11 @@ rf = RandomForestRegressor(featuresCol = 'features', labelCol='SalePrice',
                           )
 rf_model = rf.fit(train)
 
+rf_model.save('model_new.txt')
+# with open('model.txt', 'wb') as f:
+#     cPickle.dump(rf_model, f)
+
+
 rf_predictions = rf_model.transform(val)
 rf_predictions.select("prediction","SalePrice","features").show(5)
 
@@ -353,8 +359,12 @@ rf_evaluator = RegressionEvaluator(predictionCol="prediction",                  
 print("R Squared (R2) on val data = %g" % rf_evaluator.evaluate(rf_predictions))
 
 
-# In[51]:
+# In[52]:
 
+
+from pyspark.ml.regression import RandomForestRegressionModel
+
+rf_model=RandomForestRegressionModel.load('model_new.txt')
 
 rf_predictions2 = rf_model.transform(test_vector)
 #rf_predictions2.printSchema()
@@ -367,12 +377,6 @@ from pyspark.sql.types import FloatType, IntegerType
 pred = pred.withColumn("Id", pred["Id"].cast(IntegerType()))
 pred = pred.withColumn("SalePrice", pred["SalePrice"].cast(FloatType()))
 pred.head(10)
-
-
-# In[25]:
-
-
-from pyspark.streaming.kafka import KafkaUtils                                                                          
 
 
 # In[ ]:
