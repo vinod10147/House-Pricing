@@ -3,7 +3,7 @@ import pyspark
 from pyspark import RDD
 from pyspark import SparkContext
 from pyspark.streaming import StreamingContext
-#from pyspark.streaming.kafka import KafkaUtils
+from pyspark.streaming.kafka import KafkaUtils
 from pyspark.ml import Pipeline
 from pyspark.ml.feature import StringIndexer
 from pyspark import SparkConf, SparkContext
